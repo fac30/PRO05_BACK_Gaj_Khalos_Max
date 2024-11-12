@@ -1,2 +1,2 @@
-# PRO05_BACK_Max_Gaj_Khalos
+# PRO05_BACK_Gaj_Khalos_Max
 Backend for our pokemon collection project
