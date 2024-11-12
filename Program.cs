@@ -32,4 +32,4 @@ app.MapGet("/", () => "Hello World!");
 app.Run();
 
 
-builder.Services.AddCors(options => { });
+// builder.Services.AddCors(options => { });
