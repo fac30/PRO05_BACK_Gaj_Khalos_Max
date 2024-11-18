@@ -1,6 +1,9 @@
-public class Pokemon : BaseEntity
+namespace PokeLikeAPI.Models
 {
-    public required string Name { get; set; }
-    public required string ApiUrl { get; set; }
-    public int Likes { get; set; }
+    public class Pokemon : BaseEntity
+    {
+        public required string Name { get; set; }
+        public required string ApiUrl { get; set; }
+        public int Likes { get; set; }
+    }
 }
