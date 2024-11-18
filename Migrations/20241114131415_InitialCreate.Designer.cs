@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PokeLikeAPI.Data;
@@ -11,9 +12,11 @@ using PokeLikeAPI.Data;
 namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
 {
     [DbContext(typeof(PokeLikeDbContext))]
-    partial class PokeLikeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114131415_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
