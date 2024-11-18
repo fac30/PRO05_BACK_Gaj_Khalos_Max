@@ -12,7 +12,7 @@ using PokeLikeAPI.Data;
 namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
 {
     [DbContext(typeof(PokeLikeDbContext))]
-    [Migration("20241114131415_InitialCreate")]
+    [Migration("20241118131933_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -80,6 +80,11 @@ namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer")
