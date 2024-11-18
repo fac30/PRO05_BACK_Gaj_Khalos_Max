@@ -1,4 +1,8 @@
-public class BaseEntity
+namespace PokeLikeAPI.Models
 {
-    public int Id { get; set; }
+    public class BaseEntity
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }
