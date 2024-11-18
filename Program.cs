@@ -5,6 +5,18 @@ using PokeLikeAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContextPool<PokeLikeDbContext>(opt =>
@@ -32,6 +44,8 @@ using (var scope = app.Services.CreateScope())
     await PokemonSeeder.SeedPokemonsAsync(context);
 }
 
+app.UseCors("AllowSpecificOrigin");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -41,15 +55,35 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "Welcome to the PokeLike API!");
 
-app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.ToListAsync());
+app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
 
 app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
     await db.Pokemon.AddAsync(pokemon);
     await db.SaveChangesAsync();
     return Results.Created($"/pokemon/{pokemon.Id}", pokemon);
+});
+
+app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest request) =>
+{
+    var pokemon = await db.Pokemon.FindAsync(id);
+    if (pokemon == null)
+    {
+        return Results.NotFound();
+    }
+
+    var updateData = await request.ReadFromJsonAsync<UpdatePokemonDto>();
+    if (updateData == null || updateData.Likes == null)
+    {
+        return Results.BadRequest(new { message = "Invalid request payload." });
+    }
+
+    pokemon.Likes = updateData.Likes.Value;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(pokemon);
 });
 
 app.Run();
