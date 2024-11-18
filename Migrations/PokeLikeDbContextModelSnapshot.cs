@@ -78,6 +78,11 @@ namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
+
                     b.Property<int>("Likes")
                         .HasColumnType("integer")
                         .HasColumnName("likes");

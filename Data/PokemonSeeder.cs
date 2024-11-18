@@ -15,7 +15,7 @@ public static class PokemonSeeder
     {
         if (await context.Pokemon.AnyAsync()) return;
 
-        var response = await httpClient.GetAsync("https://pokeapi.co/api/v2/pokemon?limit=1000");
+        var response = await httpClient.GetAsync("https://pokeapi.co/api/v2/pokemon?limit=649");
         if (response.IsSuccessStatusCode)
         {
             var json = await response.Content.ReadAsStringAsync();
@@ -23,20 +23,24 @@ public static class PokemonSeeder
             var root = jsonData.RootElement.GetProperty("results");
 
             var pokemons = new List<Pokemon>();
+            int pokemonNumber = 1;
 
             foreach (var element in root.EnumerateArray())
             {
                 var name = element.GetProperty("name").GetString() ?? "unknown";
                 var apiUrl = element.GetProperty("url").GetString() ?? string.Empty;
+                var imageUrl = $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/{pokemonNumber}.svg";
 
                 var pokemon = new Pokemon
                 {
                     Name = name,
+                    ImageUrl = imageUrl,
                     ApiUrl = apiUrl,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 pokemons.Add(pokemon);
+                pokemonNumber++;
             }
 
             await context.Pokemon.AddRangeAsync(pokemons);
