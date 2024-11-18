@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using PokeLikeAPI.Data;
+using PokeLikeAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,12 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<PokeLikeDbContext>();
+    await PokemonSeeder.SeedPokemonsAsync(context);
+}
 
 if (app.Environment.IsDevelopment())
 {
