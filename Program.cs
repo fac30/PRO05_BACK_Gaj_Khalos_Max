@@ -127,6 +127,32 @@ app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest r
     return Results.Ok(pokemon);
 });
 
+app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
+{
+    var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+    var collection = new Collection
+    {
+        //collection object creates a new instance of the Collection entity, Populating it with data from the DTO.
+        //ThemeId is converted to a string assuming the model expects a string from the property.
+        Name = dto.Name,
+        ThemeId = dto.ThemeId.ToString(),
+        Likes = dto.Likes,
+        PasswordHash = passwordHash
+    };
+    await db.Collections.AddAsync(collection);
+    await db.SaveChangesAsync();
+
+});
+
+
+
+
+
+
+
+
+
 app.Run();
 
 
