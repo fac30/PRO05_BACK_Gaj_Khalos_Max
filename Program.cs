@@ -140,8 +140,20 @@ app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto
         Likes = dto.Likes,
         PasswordHash = passwordHash
     };
+    //add the collection to the database
     await db.Collections.AddAsync(collection);
     await db.SaveChangesAsync();
+
+// LOOK FURTHER INTO THIS IT'A ASSOCIATING WITH A NEW COLLECTION 
+    foreach (var pokemonId in dto.PokemonIds)
+    {
+        var pokemonCollection = new PokemonCollections
+        {
+            CollectionId = collection.Id,
+            PokemonId = pokemonId
+        };
+        await db.PokemonCollections.AddAsync(pokemonCollection);
+    }
 
 });
 
