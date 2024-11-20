@@ -8,10 +8,13 @@ build:
   - image: europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts
     docker:
       dockerfile: Dockerfile
+  tagPolicy:
+    sha256: {}
 
 deploy:
   kubectl:
     manifests:
+      - kubernetes/postgres-pvc.yaml
       - kubernetes/postgres-deployment.yaml
       - kubernetes/postgres-service.yaml
       - kubernetes/api-deployment.yaml
@@ -20,4 +23,8 @@ deploy:
 profiles:
 - name: gcb
   build:
-    googleCloudBuild: {} 
+    googleCloudBuild: {}
+    tagPolicy:
+      sha256: {}
+  deploy:
+    kubectl: {}
