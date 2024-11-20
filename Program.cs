@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContextPool<PokeLikeDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("PokeLikeDbContext") ?? 
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("PokeLikeDbContext") ??
         Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"))
        .UseSnakeCaseNamingConvention());
 
@@ -127,6 +127,8 @@ app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest r
 
     return Results.Ok(pokemon);
 });
+
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 app.Run();
 
