@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: pokelike-api
-          image: europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1
+          image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:v1
           ports:
             - containerPort: 8080
           env:
