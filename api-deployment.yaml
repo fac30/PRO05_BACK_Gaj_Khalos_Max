@@ -14,11 +14,11 @@ spec:
     spec:
       containers:
         - name: pokelike-api
-          image: maxitect/pokelike-api:latest
+          image: europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              value: Development
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
             - name: ConnectionStrings__PokeLikeDbContext
-              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP" 
+              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP"
