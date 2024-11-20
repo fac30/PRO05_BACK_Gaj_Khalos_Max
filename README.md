@@ -46,21 +46,27 @@ Welcome to the **PokeLike API**! This project helps you track Pokémon you find 
 
 When using Docker, the PostgreSQL database is automatically set up in a container. No additional manual configuration is required.
 
+1. Pull the Docker image from Docker Hub:
+
+   ```bash
+   docker-compose pull
+   ```
+
 1. Build and start the Docker containers:
 
    ```bash
-   docker-compose up --build
+   docker-compose up -d
    ```
 
-2. The API will be available at `http://localhost/`.
+1. The API will be available at `http://localhost/`.
 
-3. To stop the containers, run:
+1. To stop the containers, run:
 
    ```bash
    docker-compose down
    ```
 
-4. The API will be available at `http://localhost/` - no port number is needed.
+1. The API will be available at `http://localhost/` - no port number is needed.
 
 ### Running Locally
 
@@ -176,13 +182,24 @@ dotnet ef database update
 
 - **Resetting Docker containers**:
   To rebuild and reset all containers:
+
   ```bash
   docker-compose down -v
   docker system prune -a
   docker-compose up --build
   ```
+
+- **Resetting migration**
   If there have been updates to the codebase, remove migrations and re-initialise them before re-running container commands:
+
   ```bash
   dotnet ef migrations remove
   dotnet ef migrations add InitialCreate
+  ```
+
+- **Pulling Docker image from Docker Hub**
+  If you have trouble authenticating and pulling the image from Docker Hub, you may need to login with Docker:
+
+  ```bash
+  docker login
   ```
