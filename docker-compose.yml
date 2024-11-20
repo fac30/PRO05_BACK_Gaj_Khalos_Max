@@ -1,0 +1,35 @@
+version: "3.4"
+
+services:
+  db:
+    image: postgres
+    container_name: pokelike_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 7p3aoDnBAMf%#$SZpzCP
+      POSTGRES_DB: PokeLikeDb
+    ports:
+      - "5433:5432"
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: ${DOCKER_REGISTRY-}pokelike-api
+    build:
+      context: . # Current directory is already set as context
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings:PokeLikeDbContext=Host=db;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "80:80"
+    platform: linux/amd64
+    restart: always
