@@ -21,4 +21,4 @@ spec:
             - name: ASPNETCORE_URLS
               value: "http://+:8080"
             - name: ConnectionStrings__PokeLikeDbContext
-              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP"
+              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=welovepokemon"
