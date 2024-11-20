@@ -12,7 +12,7 @@ using PokeLikeAPI.Data;
 namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
 {
     [DbContext(typeof(PokeLikeDbContext))]
-    [Migration("20241118131933_InitialCreate")]
+    [Migration("20241120112848_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
