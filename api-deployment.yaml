@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokelike-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokelike-api
+  template:
+    metadata:
+      labels:
+        app: pokelike-api
+    spec:
+      containers:
+        - name: pokelike-api
+          image: maxitect/pokelike-api:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: ConnectionStrings__PokeLikeDbContext
+              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP" 
