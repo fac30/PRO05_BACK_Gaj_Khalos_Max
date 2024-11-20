@@ -25,10 +25,10 @@ spec:
             - name: POSTGRES_PASSWORD
               value: "welovepokemon"
             - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
+              value: /var/lib/postgresql/data/pgdata/db
           volumeMounts:
             - name: postgres-storage
-              mountPath: /var/lib/postgresql/data/pgdata
+              mountPath: /var/lib/postgresql/data/pgdata/db
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:
