@@ -176,22 +176,6 @@ app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto
 
 app.MapGet("/health", () => Results.Ok("Healthy"));
 
-//"/pokemon/{id}" for fetching Pokémon from your local database.
-//"/pokemon/external/{id}" for fetching Pokémon from the PokeAPI.
-app.MapGet("/pokemon/external/{id}", async (int id) =>
-{
-    using var httpClient = new HttpClient();
-    var response = await httpClient.GetAsync($"https://pokeapi.co/api/v2/pokemon/{id}");
-
-    if (!response.IsSuccessStatusCode)
-    {
-        return Results.NotFound(new { message = $"Pokemon with ID {id} not found in PokeAPI." });
-    }
-
-    var content = await response.Content.ReadAsStringAsync();
-    return Results.Ok(content);
-});
-
 app.Run();
 
 
