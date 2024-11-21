@@ -111,8 +111,6 @@ app.MapGet("/", () => "Welcome to the PokeLike API!");
 
 app.MapGet("/themes", async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
 
-app.MapGet("/collections", async (PokeLikeDbContext db) => await db.Collections.OrderBy(collection => collection.Id).ToListAsync());
-
 app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
 
 app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
@@ -141,6 +139,13 @@ app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest r
 
     return Results.Ok(pokemon);
 });
+
+app.MapGet("/collections", async (PokeLikeDbContext db) =>
+    await db.Collections
+        .Include(c => c.PokemonCollections)
+            .ThenInclude(pc => pc.Pokemon)
+        .OrderBy(collection => collection.Id)
+        .ToListAsync());
 
 app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
 {
