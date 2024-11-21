@@ -4,6 +4,8 @@ using PokeLikeAPI.Data;
 using PokeLikeAPI.Models;
 using PokeLikeAPI.Dtos;
 using BCrypt.Net;
+using Microsoft.AspNetCore.Http.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,11 @@ if (builder.Environment.IsDevelopment())
 });
 }
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 var app = builder.Build();
 
 async Task MigrateDatabase(IServiceProvider serviceProvider)
@@ -57,6 +64,7 @@ async Task MigrateDatabase(IServiceProvider serviceProvider)
             await context.Database.MigrateAsync();
             // If seeding is needed
             await PokemonSeeder.SeedPokemonsAsync(context);
+            await ThemesSeeder.SeedThemesAsync(context);
             logger.LogInformation("Database migration completed");
             break;
         }
@@ -100,6 +108,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "Welcome to the PokeLike API!");
+
+app.MapGet("/themes", async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
 
 app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
 
@@ -147,7 +157,7 @@ app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto
     await db.Collections.AddAsync(collection);
     await db.SaveChangesAsync();
 
-// LOOK FURTHER INTO THIS IT'A ASSOCIATING WITH A NEW COLLECTION 
+    // LOOK FURTHER INTO THIS IT'A ASSOCIATING WITH A NEW COLLECTION 
     foreach (var pokemonId in dto.PokemonIds)
     {
         var pokemonCollection = new PokemonCollections
