@@ -2,10 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pokelike-api
+  annotations:
+    networking.gke.io/load-balancer-type: "External"
+    kubernetes.io/ingress.global-static-ip-name: "pokelike-static-ip"
 spec:
   type: LoadBalancer
   ports:
     - port: 8080
       targetPort: 8080
   selector:
-    app: pokelike-api 
+    app: pokelike-api
