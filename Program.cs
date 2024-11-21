@@ -2,6 +2,10 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using PokeLikeAPI.Data;
 using PokeLikeAPI.Models;
+using PokeLikeAPI.Dtos;
+using BCrypt.Net;
+using Microsoft.AspNetCore.Http.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +41,11 @@ if (builder.Environment.IsDevelopment())
 });
 }
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 var app = builder.Build();
 
 async Task MigrateDatabase(IServiceProvider serviceProvider)
@@ -55,6 +64,7 @@ async Task MigrateDatabase(IServiceProvider serviceProvider)
             await context.Database.MigrateAsync();
             // If seeding is needed
             await PokemonSeeder.SeedPokemonsAsync(context);
+            await ThemesSeeder.SeedThemesAsync(context);
             logger.LogInformation("Database migration completed");
             break;
         }
@@ -99,6 +109,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "Welcome to the PokeLike API!");
 
+app.MapGet("/themes", async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
+
 app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
 
 app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
@@ -126,6 +138,40 @@ app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest r
     await db.SaveChangesAsync();
 
     return Results.Ok(pokemon);
+});
+
+app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
+{
+    var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+    var collection = new Collection
+    {
+        //collection object creates a new instance of the Collection entity, Populating it with data from the DTO.
+        //ThemeId is converted to a string assuming the model expects a string from the property.
+        Name = dto.Name,
+        ThemeId = dto.ThemeId.ToString(),
+        Likes = dto.Likes,
+        PasswordHash = passwordHash
+    };
+    //add the collection to the database
+    await db.Collections.AddAsync(collection);
+    await db.SaveChangesAsync();
+
+    // LOOK FURTHER INTO THIS IT'A ASSOCIATING WITH A NEW COLLECTION 
+    foreach (var pokemonId in dto.PokemonIds)
+    {
+        var pokemonCollection = new PokemonCollections
+        {
+            CollectionId = collection.Id,
+            Collection = collection,
+            PokemonId = pokemonId,
+            Pokemon = await db.Pokemon.FindAsync(pokemonId) ?? throw new InvalidOperationException($"Pokemon with ID {pokemonId} not found.")
+        };
+        await db.PokemonCollections.AddAsync(pokemonCollection);
+    }
+    await db.SaveChangesAsync();
+    return Results.Created($"/collections/{collection.Id}", collection);
+
 });
 
 app.MapGet("/health", () => Results.Ok("Healthy"));

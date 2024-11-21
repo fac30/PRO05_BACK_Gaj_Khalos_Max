@@ -12,7 +12,7 @@ using PokeLikeAPI.Data;
 namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
 {
     [DbContext(typeof(PokeLikeDbContext))]
-    [Migration("20241120112848_InitialCreate")]
+    [Migration("20241121115047_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -129,18 +129,9 @@ namespace PRO05_BACK_Gaj_Khalos_Max.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApiUrl")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("api_url");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer")
-                        .HasColumnName("likes");
 
                     b.Property<string>("Name")
                         .IsRequired()
