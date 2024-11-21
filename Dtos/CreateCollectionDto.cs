@@ -1,3 +1,5 @@
+using PokeLikeAPI.Dtos;
+
 namespace PokeLikeAPI.Dtos
 {
     public class CreateCollectionDto

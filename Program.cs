@@ -2,6 +2,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using PokeLikeAPI.Data;
 using PokeLikeAPI.Models;
+using PokeLikeAPI.Dtos;
+using BCrypt.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContextPool<PokeLikeDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("PokeLikeDbContext"))
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("PokeLikeDbContext") ??
+        Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"))
        .UseSnakeCaseNamingConvention());
 
 if (builder.Environment.IsDevelopment())
@@ -150,20 +153,19 @@ app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto
         var pokemonCollection = new PokemonCollections
         {
             CollectionId = collection.Id,
-            PokemonId = pokemonId
+            Collection = collection,
+            PokemonId = pokemonId,
+            Pokemon = await db.Pokemon.FindAsync(pokemonId) ?? throw new InvalidOperationException($"Pokemon with ID {pokemonId} not found.")
         };
         await db.PokemonCollections.AddAsync(pokemonCollection);
     }
+    await db.SaveChangesAsync();
+    return Results.Created($"/collections/{collection.Id}", collection);
 
 });
 
 
-
-
-
-
-
-
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 app.Run();
 

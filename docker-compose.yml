@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:latest
@@ -14,8 +16,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - pokelike-network
 
-  web:
+  api:
     image: maxitect/pokelike-api:latest
     build:
       context: .
@@ -25,9 +29,15 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings:PokeLikeDbContext=Host=db;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP
-      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__PokeLikeDbContext=Host=db;Port=5432;Database=PokeLikeDb;Username=postgres;Password=7p3aoDnBAMf%#$SZpzCP
+      - ASPNETCORE_URLS=http://+:8080
     ports:
-      - "80:80"
+      - "8080:8080"
     platform: linux/amd64
     restart: always
+    networks:
+      - pokelike-network
+
+networks:
+  pokelike-network:
+    driver: bridge

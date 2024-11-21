@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokelike-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokelike-api
+  template:
+    metadata:
+      labels:
+        app: pokelike-api
+    spec:
+      containers:
+        - name: pokelike-api
+          image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:v1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: ConnectionStrings__PokeLikeDbContext
+              value: "Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=welovepokemon"

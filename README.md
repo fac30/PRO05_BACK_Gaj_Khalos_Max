@@ -147,7 +147,7 @@ dotnet ef database update
 
 ### Base URL
 
-- **Docker**: `http://localhost/`
+- **Docker**: `http://localhost:8080`
 - **Local Development**: `http://localhost:5050`
 
 ### Endpoints
