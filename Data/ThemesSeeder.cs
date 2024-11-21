@@ -9,28 +9,28 @@ using System;
 
 public static class ThemesSeeder
 {
-    private static readonly string[] themesList = [
+    private static readonly List<string> themes = new()
+    {
         "Cute",
         "Strong",
         "Ugly",
         "Sleepy",
         "Intelligent"
-    ];
-
+    };
 
     public static async Task SeedThemesAsync(PokeLikeDbContext context)
     {
-        var themes = new List<Theme>();
-        foreach (var theme in themesList)
+        var themeEntities = new List<Theme>();
+        foreach (var themeName in themes)
         {
-            themes.Add(new Theme
+            themeEntities.Add(new Theme
             {
-                Name = theme,
+                Name = themeName,
                 CreatedAt = DateTime.UtcNow,
             });
         }
 
-        await context.Themes.AddRangeAsync(themes);
+        await context.Themes.AddRangeAsync(themeEntities);
         await context.SaveChangesAsync();
     }
 }
