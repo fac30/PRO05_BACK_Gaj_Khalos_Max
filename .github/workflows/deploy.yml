@@ -2,9 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   PROJECT_ID: poke-like-api
@@ -16,38 +14,58 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '7.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Google Auth
-      uses: 'google-github-actions/auth@v2'
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Google Auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
-    - name: Setup GCloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ env.PROJECT_ID }}
+      - name: Setup GCloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
-    - name: Configure Docker
-      run: gcloud auth configure-docker europe-west2-docker.pkg.dev
+      - name: Configure Docker
+        run: gcloud auth configure-docker europe-west2-docker.pkg.dev
 
-    - name: Build and Push Image
-      run: |
-        docker build -t europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA .
-        docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA
+      - name: Build and Push Image
+        run: |
+          docker build -t europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA .
+          docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA
 
-    - name: Get GKE Credentials
-      uses: google-github-actions/get-gke-credentials@v2
-      with:
-        cluster_name: ${{ env.GKE_CLUSTER }}
-        location: ${{ env.GKE_ZONE }}
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
 
-    - name: Deploy to GKE
-      run: |
-        sed -i "s|:v1|:$GITHUB_SHA|" kubernetes/api-deployment.yaml
-        kubectl apply -f kubernetes/
+      - name: Delete Existing Resources
+        run: |
+          kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
+
+          kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
+          kubectl wait --for=delete deployment/postgres --timeout=60s || true
+
+      - name: Deploy Database
+        run: |
+          kubectl apply -f kubernetes/postgres-pvc.yaml
+          kubectl apply -f kubernetes/postgres-service.yaml
+          kubectl apply -f kubernetes/postgres-deployment.yaml
+          kubectl wait --for=condition=available deployment/postgres --timeout=180s
+
+      - name: Deploy API
+        run: |
+          sed -i "s|:v1|:$GITHUB_SHA|" kubernetes/api-deployment.yaml
+          kubectl apply -f kubernetes/api-service.yaml
+          kubectl apply -f kubernetes/api-deployment.yaml
+          kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
