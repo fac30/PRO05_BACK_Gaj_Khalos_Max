@@ -79,7 +79,7 @@ jobs:
 
       - name: Deploy API
         run: |
-          sed -i "s|:v:$GITHUB_SHA|" kubernetes/api-deployment.yaml
+          sed -i "s/:v1/:${GITHUB_SHA}/" kubernetes/api-deployment.yaml
           kubectl apply -f kubernetes/api-service.yaml
           kubectl apply -f kubernetes/api-deployment.yaml
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s

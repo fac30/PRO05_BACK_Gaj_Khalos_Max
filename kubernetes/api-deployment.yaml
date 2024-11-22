@@ -16,7 +16,7 @@ spec:
         cloud.google.com/gke-preemptible: "true"
       containers:
         - name: pokelike-api
-          image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:v1
+          image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:123abc
           ports:
             - containerPort: 8080
           resources:
