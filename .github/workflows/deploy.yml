@@ -9,6 +9,7 @@ env:
   GKE_CLUSTER: pokelike-cluster
   GKE_ZONE: europe-west2-a
   IMAGE: pokelike-artifacts
+  NODE_POOL_NAME: preemptible-pool
 
 jobs:
   build-and-deploy:
@@ -45,6 +46,19 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
+      - name: Create Preemptible Node Pool
+        run: |
+          if ! gcloud container node-pools describe $NODE_POOL_NAME \
+            --cluster $GKE_CLUSTER \
+            --zone $GKE_ZONE; then
+            gcloud container node-pools create $NODE_POOL_NAME \
+              --cluster=$GKE_CLUSTER \
+              --preemptible \
+              --machine-type=e2-small \
+              --num-nodes=1 \
+              --zone=$GKE_ZONE
+          fi
+
       - name: Delete Existing Resources
         run: |
           kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
@@ -65,7 +79,13 @@ jobs:
 
       - name: Deploy API
         run: |
-          sed -i "s|:v1|:$GITHUB_SHA|" kubernetes/api-deployment.yaml
+          sed -i "s|:v:$GITHUB_SHA|" kubernetes/api-deployment.yaml
           kubectl apply -f kubernetes/api-service.yaml
           kubectl apply -f kubernetes/api-deployment.yaml
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
+
+      - name: Deploy HTTPS Resources
+        run: |
+          kubectl apply -f kubernetes/backend-config.yaml
+          kubectl apply -f kubernetes/ingress.yaml
+          kubectl wait --for=condition=Ready ingress/pokelike-ingress --timeout=300s
