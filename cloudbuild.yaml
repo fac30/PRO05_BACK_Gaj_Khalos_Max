@@ -5,7 +5,7 @@ steps:
       [
         "build",
         "-t",
-        "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1",
+        "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:${COMMIT_SHA}",
         ".",
       ]
 
@@ -14,24 +14,16 @@ steps:
     args:
       [
         "push",
-        "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1",
+        "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:${COMMIT_SHA}",
       ]
 
-  # Deploy container image to Cloud Run
-  - name: "gcr.io/cloud-builders/gcloud"
+  # Get GKE credentials
+  - name: "gcr.io/cloud-builders/gke-deploy"
     args:
-      - "run"
-      - "deploy"
-      - "pokelike-api"
-      - "--image"
-      - "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1"
-      - "--region"
-      - "europe-west2"
-      - "--platform"
-      - "managed"
-      - "--allow-unauthenticated"
-      - "--port"
-      - "8080"
+      - run
+      - --filename=kubernetes
+      - --location=europe-west2-a
+      - --cluster=pokelike-cluster
 
 images:
-  - "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:v1"
+  - "europe-west2-docker.pkg.dev/${PROJECT_ID}/pokelike-artifacts/pokelike-artifacts:${COMMIT_SHA}"
