@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: NodePool
+metadata:
+  name: preemptible-pool
+spec:
+  nodeConfig:
+    preemptible: true
+    machineType: e2-small 
