@@ -12,11 +12,20 @@ spec:
       labels:
         app: postgres
     spec:
+      nodeSelector:
+        cloud.google.com/gke-preemptible: "true"
       containers:
         - name: postgres
           image: postgres:latest
           ports:
             - containerPort: 5432
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
           env:
             - name: POSTGRES_DB
               value: PokeLikeDb
