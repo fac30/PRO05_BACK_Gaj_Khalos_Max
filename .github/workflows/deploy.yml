@@ -55,7 +55,7 @@ jobs:
               --cluster=$GKE_CLUSTER \
               --preemptible \
               --machine-type=e2-small \
-              --num-nodes=1 \
+              --num-nodes=2 \  # Changed from 1 to 2
               --zone=$GKE_ZONE
           fi
           # Wait for node pool to be ready
@@ -63,6 +63,8 @@ jobs:
             echo "Waiting for preemptible nodes to be ready..."
             sleep 10
           done
+          # Additional check for node capacity
+          kubectl describe nodes | grep -A 5 "Allocated resources"
 
       - name: Delete Existing Resources
         run: |
