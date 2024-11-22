@@ -46,7 +46,7 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
-      - name: Create Preemptible Node Pool
+      - name: Create and Wait for Node Pool
         run: |
           if ! gcloud container node-pools describe $NODE_POOL_NAME \
             --cluster $GKE_CLUSTER \
@@ -58,6 +58,11 @@ jobs:
               --num-nodes=1 \
               --zone=$GKE_ZONE
           fi
+          # Wait for node pool to be ready
+          until kubectl get nodes -l cloud.google.com/gke-preemptible=true | grep -q "Ready"; do
+            echo "Waiting for preemptible nodes to be ready..."
+            sleep 10
+          done
 
       - name: Delete Existing Resources
         run: |
@@ -66,6 +71,10 @@ jobs:
           kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
           kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
           kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
+          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
+          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
+          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
 
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
@@ -82,7 +91,13 @@ jobs:
           sed -i "s/:v1/:${GITHUB_SHA}/" kubernetes/api-deployment.yaml
           kubectl apply -f kubernetes/api-service.yaml
           kubectl apply -f kubernetes/api-deployment.yaml
-          kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
+          kubectl get pods -w &
+          kubectl wait --for=condition=available deployment/pokelike-api --timeout=300s
+          kubectl describe deployment pokelike-api
+
+      - name: Deploy HPA
+        run: |
+          kubectl apply -f kubernetes/api-hpa.yaml
 
       - name: Deploy HTTPS Resources
         run: |
