@@ -19,6 +19,10 @@ deploy:
       - kubernetes/postgres-service.yaml
       - kubernetes/api-deployment.yaml
       - kubernetes/api-service.yaml
+      - kubernetes/api-hpa.yaml
+      - kubernetes/node-pool.yaml
+      - kubernetes/backend-config.yaml
+      - kubernetes/ingress.yaml
 
 profiles:
 - name: gcb
