@@ -68,41 +68,22 @@ jobs:
 
       - name: Delete Existing Resources
         run: |
-          kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
-          kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
-          kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
-          kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
-          kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
-          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
-          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
-          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
-          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-
+          kubectl delete -f kubernetes/ --ignore-not-found
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
-      - name: Deploy Database
+      - name: Update API Image Tag
         run: |
-          kubectl apply -f kubernetes/postgres-pvc.yaml
-          kubectl apply -f kubernetes/postgres-service.yaml
-          kubectl apply -f kubernetes/postgres-deployment.yaml
+          sed -i "s|:v:${GITHUB_SHA}|" kubernetes/api-deployment.yaml
+
+      - name: Deploy All Resources
+        run: |
+          # Apply all resources
+          kubectl apply -f kubernetes/
+
+          # Wait for core deployments
           kubectl wait --for=condition=available deployment/postgres --timeout=180s
+          kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
 
-      - name: Deploy API
-        run: |
-          sed -i "s/:v1/:${GITHUB_SHA}/" kubernetes/api-deployment.yaml
-          kubectl apply -f kubernetes/api-service.yaml
-          kubectl apply -f kubernetes/api-deployment.yaml
-          kubectl get pods -w &
-          kubectl wait --for=condition=available deployment/pokelike-api --timeout=300s
-          kubectl describe deployment pokelike-api
-
-      - name: Deploy HPA
-        run: |
-          kubectl apply -f kubernetes/api-hpa.yaml
-
-      - name: Deploy HTTPS Resources
-        run: |
-          kubectl apply -f kubernetes/backend-config.yaml
-          kubectl apply -f kubernetes/ingress.yaml
+          # Wait for ingress
           kubectl wait --for=condition=Ready ingress/pokelike-ingress --timeout=300s
