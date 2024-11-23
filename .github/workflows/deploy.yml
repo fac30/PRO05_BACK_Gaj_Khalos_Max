@@ -54,7 +54,7 @@ jobs:
               --preemptible \
               --machine-type=e2-small \
               --num-nodes=2 \
-              --disk-size=1 \
+              --disk-size=10 \
               --zone=$GKE_ZONE
           fi
 

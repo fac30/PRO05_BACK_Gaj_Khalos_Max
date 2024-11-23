@@ -6,5 +6,5 @@ spec:
   nodeConfig:
     preemptible: true
     machineType: e2-small
-    diskSizeGb: 1
+    diskSizeGb: 10
   initialNodeCount: 2
