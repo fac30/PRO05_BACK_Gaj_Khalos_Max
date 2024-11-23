@@ -83,8 +83,6 @@ jobs:
 
           # Delete networking resources
           kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
-          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
           kubectl delete -f kubernetes/managed-cert.yaml --ignore-not-found
 
           # Wait for core deployments to be deleted
