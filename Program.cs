@@ -16,8 +16,7 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                     "http://localhost:5173",
-                    "http://pokelike.s3-website.eu-west-2.amazonaws.com",
-                    "http://pokelike.s3-website.eu-west-2.amazonaws.com/*"
+                    "http://pokelike.s3-website.eu-west-2.amazonaws.com"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -116,6 +115,8 @@ app.MapGet("/", () => "Welcome to the PokeLike API!");
 app.MapGet("/themes", async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
 
 app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
+
+app.MapMethods("/pokemon", new[] { "OPTIONS" }, () => Results.Ok());
 
 app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
