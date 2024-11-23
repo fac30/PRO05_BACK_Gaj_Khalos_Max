@@ -66,24 +66,86 @@ jobs:
           # Additional check for node capacity
           kubectl describe nodes | grep -A 5 "Allocated resources"
 
+          - name: Delete Existing Resources
+          run: |
+            # Delete API resources
+            kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
+            kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
+            kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
+            
+            # Delete Postgres resources
+            kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
+            kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
+            kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
+            
+            # Delete networking resources
+            kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
+            kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
+            kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
+            
+            # Wait for core deployments to be deleted
+            kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
+            kubectl wait --for=delete deployment/postgres --timeout=60s || true
+
       - name: Delete Existing Resources
         run: |
-          kubectl delete -f kubernetes/ --ignore-not-found
+          # Delete API resources
+          kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
+
+          # Delete Postgres resources
+          kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
+
+          # Delete networking resources
+          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
+          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
+          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
+
+          # Wait for core deployments to be deleted
+          kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
+          kubectl wait --for=delete deployment/postgres --timeout=60s || true
+
+      - name: Delete Existing Resources
+        run: |
+          # Delete API resources
+          kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
+
+          # Delete Postgres resources
+          kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
+          kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
+
+          # Delete networking resources
+          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
+          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
+          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
+
+          # Wait for core deployments to be deleted
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
       - name: Update API Image Tag
         run: |
-          sed -i "s|:v:${GITHUB_SHA}|" kubernetes/api-deployment.yaml
+          sed -i "s|:v1|:${GITHUB_SHA}|" kubernetes/api-deployment.yaml
 
       - name: Deploy All Resources
         run: |
-          # Apply all resources
-          kubectl apply -f kubernetes/
+          # Apply all resources except node pool
+          kubectl apply -f kubernetes/api-deployment.yaml
+          kubectl apply -f kubernetes/api-service.yaml
+          kubectl apply -f kubernetes/postgres-deployment.yaml
+          kubectl apply -f kubernetes/postgres-service.yaml
+          kubectl apply -f kubernetes/postgres-pvc.yaml
+          kubectl apply -f kubernetes/api-hpa.yaml
+          kubectl apply -f kubernetes/backend-config.yaml
+          kubectl apply -f kubernetes/ingress.yaml
+          kubectl apply -f kubernetes/certificate.yaml
 
           # Wait for core deployments
           kubectl wait --for=condition=available deployment/postgres --timeout=180s
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
-
-          # Wait for ingress
-          kubectl wait --for=condition=Ready ingress/pokelike-ingress --timeout=300s
