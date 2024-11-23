@@ -85,16 +85,8 @@ jobs:
 
       - name: Deploy Infrastructure
         run: |
-          # First deploy PVC and wait
+          # Create PVC and Postgres resources
           kubectl apply -f kubernetes/postgres-pvc.yaml
-          echo "Waiting for PVC to be bound..."
-          kubectl wait --for=condition=Bound pvc/postgres-pvc --timeout=60s
-
-          # Clean up any stuck pods
-          kubectl delete pods --selector=app=postgres --force --grace-period=0 || true
-          kubectl delete pods --selector=app=pokelike-api --force --grace-period=0 || true
-
-          # Deploy Postgres and wait
           kubectl apply -f kubernetes/postgres-service.yaml
           kubectl apply -f kubernetes/postgres-deployment.yaml
           kubectl wait --for=condition=available deployment/postgres --timeout=180s
