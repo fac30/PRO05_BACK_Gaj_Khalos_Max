@@ -113,18 +113,27 @@ app.UseCors("AllowSpecificOrigin");
 
 app.MapGet("/", () => "Welcome to the PokeLike API!");
 
-app.MapGet("/themes", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
+app.MapGet("/themes", async (PokeLikeDbContext db) =>
+    await db.Themes
+    .OrderBy(theme => theme.Id)
+    .ToListAsync())
+    .RequireCors("AllowSpecificOrigins");
 
-app.MapGet("/pokemon", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
+app.MapGet("/pokemon", async (PokeLikeDbContext db) =>
+    await db
+    .Pokemon
+    .OrderBy(poke => poke.Id)
+    .ToListAsync())
+    .RequireCors("AllowSpecificOrigins");
 
-app.MapPost("/pokemon", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, Pokemon pokemon) =>
+app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
     await db.Pokemon.AddAsync(pokemon);
     await db.SaveChangesAsync();
     return Results.Created($"/pokemon/{pokemon.Id}", pokemon);
-});
+}).RequireCors("AllowSpecificOrigins");
 
-app.MapPatch("/pokemon/{id}", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, int id, HttpRequest request) =>
+app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest request) =>
 {
     var pokemon = await db.Pokemon.FindAsync(id);
     if (pokemon == null)
@@ -142,16 +151,17 @@ app.MapPatch("/pokemon/{id}", [EnableCors("AllowSpecificOrigins")] async (PokeLi
     await db.SaveChangesAsync();
 
     return Results.Ok(pokemon);
-});
+}).RequireCors("AllowSpecificOrigins");
 
-app.MapGet("/collections", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) =>
+app.MapGet("/collections", async (PokeLikeDbContext db) =>
     await db.Collections
         .Include(c => c.PokemonCollections)
             .ThenInclude(pc => pc.Pokemon)
         .OrderBy(collection => collection.Id)
-        .ToListAsync());
+        .ToListAsync())
+        .RequireCors("AllowSpecificOrigins");
 
-app.MapPost("/collections", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, CreateCollectionDto dto) =>
+app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
 {
     var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -180,7 +190,7 @@ app.MapPost("/collections", [EnableCors("AllowSpecificOrigins")] async (PokeLike
     await db.SaveChangesAsync();
     return Results.Created($"/collections/{collection.Id}", collection);
 
-});
+}).RequireCors("AllowSpecificOrigins");
 
 app.MapGet("/health", () => Results.Ok("Healthy"));
 
