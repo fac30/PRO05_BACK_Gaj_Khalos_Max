@@ -1,7 +1,0 @@
-apiVersion: networking.gke.io/v1
-kind: ManagedCertificate
-metadata:
-  name: pokelike-cert
-spec:
-  domains:
-    - pokelike.34.160.33.103.nip.io 

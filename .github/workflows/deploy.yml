@@ -83,7 +83,6 @@ jobs:
 
           # Delete networking resources
           kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-          kubectl delete -f kubernetes/managed-cert.yaml --ignore-not-found
 
           # Wait for core deployments to be deleted
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
@@ -106,7 +105,6 @@ jobs:
 
       - name: Deploy Network Resources
         run: |
-          kubectl apply -f kubernetes/managed-cert.yaml
           kubectl apply -f kubernetes/ingress.yaml
 
       - name: Deploy HPA
