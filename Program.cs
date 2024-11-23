@@ -16,7 +16,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                     "http://localhost:5173",
-                    "http://pokelike.s3-website.eu-west-2.amazonaws.com"
+                    "http://pokelike.s3-website.eu-west-2.amazonaws.com",
+                    "http://pokelike.s3-website.eu-west-2.amazonaws.com/*"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
