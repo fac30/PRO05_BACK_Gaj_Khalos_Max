@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(
                     "http://localhost:5173",
-                    "https://pokelike.netlify.app"
+                    "http://pokelike.s3-website.eu-west-2.amazonaws.com"
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
