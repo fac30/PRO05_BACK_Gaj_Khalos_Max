@@ -63,12 +63,6 @@ jobs:
             sleep 10
           done
 
-      - name: Reserve Static IP
-        run: |
-          if ! gcloud compute addresses describe pokelike-ip --global; then
-            gcloud compute addresses create pokelike-ip --global
-          fi
-
       - name: Delete Existing Resources
         run: |
           # Delete API resources
