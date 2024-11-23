@@ -4,7 +4,7 @@ metadata:
   name: pokelike-ingress
   annotations:
     kubernetes.io/ingress.allow-http: "false"
-    networking.gke.io/managed-certificates: "pokelike-certificate"
+    networking.gke.io/v1beta1.FrontendConfig: "pokelike-frontend-config"
 spec:
   ingressClassName: "gce"
   defaultBackend:

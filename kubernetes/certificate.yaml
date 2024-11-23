@@ -1,7 +1,6 @@
-apiVersion: networking.gke.io/v1
-kind: ManagedCertificate
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
 metadata:
-  name: pokelike-certificate
+  name: pokelike-frontend-config
 spec:
-  domains:
-    - api.pokelike.com  # Replace with your actual domain 
+  sslPolicy: "modern"
