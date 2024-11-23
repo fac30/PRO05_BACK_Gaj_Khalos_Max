@@ -111,6 +111,10 @@ jobs:
           echo "Waiting for PVC to be bound..."
           kubectl wait --for=condition=Bound pvc/postgres-pvc --timeout=60s
 
+          # Clean up any stuck pods
+          kubectl delete pods --selector=app=postgres --force --grace-period=0 || true
+          kubectl delete pods --selector=app=pokelike-api --force --grace-period=0 || true
+
           # Deploy Postgres and wait
           kubectl apply -f kubernetes/postgres-service.yaml
           kubectl apply -f kubernetes/postgres-deployment.yaml
@@ -133,4 +137,5 @@ jobs:
       - name: Deploy HPA
         run: |
           # Only deploy HPA after API is stable
+          sleep 30  # Give time for metrics to stabilize
           kubectl apply -f kubernetes/api-hpa.yaml
