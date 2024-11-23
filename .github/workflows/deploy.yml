@@ -83,27 +83,6 @@ jobs:
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
-      - name: Delete Existing Resources
-        run: |
-          # Delete API resources
-          kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
-          kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
-          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
-
-          # Delete Postgres resources
-          kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
-          kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
-          kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
-
-          # Delete networking resources
-          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-          kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
-          kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
-
-          # Wait for core deployments to be deleted
-          kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
-          kubectl wait --for=delete deployment/postgres --timeout=60s || true
-
       - name: Deploy Infrastructure
         run: |
           # First deploy PVC and wait
