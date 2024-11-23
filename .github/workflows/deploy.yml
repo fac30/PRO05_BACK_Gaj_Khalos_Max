@@ -48,44 +48,19 @@ jobs:
 
       - name: Create and Wait for Node Pool
         run: |
-          if ! gcloud container node-pools describe $NODE_POOL_NAME \
-            --cluster $GKE_CLUSTER \
-            --zone $GKE_ZONE; then
+          if ! gcloud container node-pools describe $NODE_POOL_NAME --cluster $GKE_CLUSTER --zone $GKE_ZONE; then
             gcloud container node-pools create $NODE_POOL_NAME \
               --cluster=$GKE_CLUSTER \
               --preemptible \
               --machine-type=e2-small \
-              --num-nodes=2 \  # Changed from 1 to 2
+              --num-nodes=2 \
               --zone=$GKE_ZONE
           fi
-          # Wait for node pool to be ready
+
+          echo "Waiting for preemptible nodes to be ready..."
           until kubectl get nodes -l cloud.google.com/gke-preemptible=true | grep -q "Ready"; do
-            echo "Waiting for preemptible nodes to be ready..."
             sleep 10
           done
-          # Additional check for node capacity
-          kubectl describe nodes | grep -A 5 "Allocated resources"
-
-          - name: Delete Existing Resources
-          run: |
-            # Delete API resources
-            kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
-            kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
-            kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
-            
-            # Delete Postgres resources
-            kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
-            kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
-            kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
-            
-            # Delete networking resources
-            kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-            kubectl delete -f kubernetes/backend-config.yaml --ignore-not-found
-            kubectl delete -f kubernetes/certificate.yaml --ignore-not-found
-            
-            # Wait for core deployments to be deleted
-            kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
-            kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
       - name: Delete Existing Resources
         run: |
