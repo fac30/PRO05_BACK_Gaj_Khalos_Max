@@ -3,9 +3,9 @@ kind: Ingress
 metadata:
   name: pokelike-ingress
   annotations:
-    kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "false"
 spec:
+  ingressClassName: "gce"
   defaultBackend:
     service:
       name: pokelike-api

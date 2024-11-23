@@ -104,23 +104,33 @@ jobs:
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
-      - name: Update API Image Tag
+      - name: Deploy Infrastructure
         run: |
-          sed -i "s|:v1|:${GITHUB_SHA}|" kubernetes/api-deployment.yaml
-
-      - name: Deploy All Resources
-        run: |
-          # Apply all resources except node pool
-          kubectl apply -f kubernetes/api-deployment.yaml
-          kubectl apply -f kubernetes/api-service.yaml
-          kubectl apply -f kubernetes/postgres-deployment.yaml
-          kubectl apply -f kubernetes/postgres-service.yaml
+          # First deploy PVC and wait
           kubectl apply -f kubernetes/postgres-pvc.yaml
-          kubectl apply -f kubernetes/api-hpa.yaml
-          kubectl apply -f kubernetes/backend-config.yaml
-          kubectl apply -f kubernetes/ingress.yaml
-          kubectl apply -f kubernetes/certificate.yaml
+          echo "Waiting for PVC to be bound..."
+          kubectl wait --for=condition=Bound pvc/postgres-pvc --timeout=60s
 
-          # Wait for core deployments
+          # Deploy Postgres and wait
+          kubectl apply -f kubernetes/postgres-service.yaml
+          kubectl apply -f kubernetes/postgres-deployment.yaml
           kubectl wait --for=condition=available deployment/postgres --timeout=180s
+
+      - name: Deploy API and Services
+        run: |
+          # Deploy API and core services
+          kubectl apply -f kubernetes/api-service.yaml
+          kubectl apply -f kubernetes/api-deployment.yaml
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
+
+      - name: Deploy Network Resources
+        run: |
+          # Deploy networking resources
+          kubectl apply -f kubernetes/backend-config.yaml
+          kubectl apply -f kubernetes/certificate.yaml
+          kubectl apply -f kubernetes/ingress.yaml
+
+      - name: Deploy HPA
+        run: |
+          # Only deploy HPA after API is stable
+          kubectl apply -f kubernetes/api-hpa.yaml
