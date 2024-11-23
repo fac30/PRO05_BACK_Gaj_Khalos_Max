@@ -6,6 +6,7 @@ using PokeLikeAPI.Dtos;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Http.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,8 +100,6 @@ catch (Exception ex)
     throw;
 }
 
-app.UseCors("AllowSpecificOrigin");
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -110,22 +109,22 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors("AllowSpecificOrigin");
+
 app.MapGet("/", () => "Welcome to the PokeLike API!");
 
-app.MapGet("/themes", async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
+app.MapGet("/themes", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) => await db.Themes.OrderBy(theme => theme.Id).ToListAsync());
 
-app.MapGet("/pokemon", async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
+app.MapGet("/pokemon", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) => await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync());
 
-app.MapMethods("/pokemon", new[] { "OPTIONS" }, () => Results.Ok());
-
-app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
+app.MapPost("/pokemon", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
     await db.Pokemon.AddAsync(pokemon);
     await db.SaveChangesAsync();
     return Results.Created($"/pokemon/{pokemon.Id}", pokemon);
 });
 
-app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest request) =>
+app.MapPatch("/pokemon/{id}", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, int id, HttpRequest request) =>
 {
     var pokemon = await db.Pokemon.FindAsync(id);
     if (pokemon == null)
@@ -145,31 +144,28 @@ app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest r
     return Results.Ok(pokemon);
 });
 
-app.MapGet("/collections", async (PokeLikeDbContext db) =>
+app.MapGet("/collections", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db) =>
     await db.Collections
         .Include(c => c.PokemonCollections)
             .ThenInclude(pc => pc.Pokemon)
         .OrderBy(collection => collection.Id)
         .ToListAsync());
 
-app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
+app.MapPost("/collections", [EnableCors("AllowSpecificOrigins")] async (PokeLikeDbContext db, CreateCollectionDto dto) =>
 {
     var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
     var collection = new Collection
     {
-        //collection object creates a new instance of the Collection entity, Populating it with data from the DTO.
-        //ThemeId is converted to a string assuming the model expects a string from the property.
         Name = dto.Name,
         ThemeId = dto.ThemeId.ToString(),
         Likes = dto.Likes,
         PasswordHash = passwordHash
     };
-    //add the collection to the database
+
     await db.Collections.AddAsync(collection);
     await db.SaveChangesAsync();
 
-    // LOOK FURTHER INTO THIS IT'A ASSOCIATING WITH A NEW COLLECTION 
     foreach (var pokemonId in dto.PokemonIds)
     {
         var pokemonCollection = new PokemonCollections
