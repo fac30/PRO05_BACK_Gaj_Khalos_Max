@@ -4,6 +4,7 @@ metadata:
   name: pokelike-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: "pokelike-ip"
+    kubernetes.io/ingress.allow-http: "true"
 spec:
   ingressClassName: "gce"
   rules:
