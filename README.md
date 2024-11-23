@@ -1,6 +1,6 @@
 # PokeLike API
 
-![Pikachu welcomes you!](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25 "Pikachu")
+![Pikachu welcomes you!](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg "Pikachu")
 
 Welcome to the **PokeLike API**! This project helps you track Pokémon you find cute 🥰 using an ASP.NET Core Web API backed by a PostgreSQL database.
 
@@ -158,7 +158,7 @@ dotnet ef database update
     ```json
     {
       "name": "Pikachu",
-      "imageUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25",
+      "imageUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/25.svg",
       "apiUrl": "https://pokeapi.co/api/v2/pokemon/pikachu",
       "likes": 100
     }
