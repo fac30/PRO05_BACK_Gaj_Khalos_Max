@@ -5,4 +5,5 @@ metadata:
 spec:
   nodeConfig:
     preemptible: true
-    machineType: e2-small 
+    machineType: e2-medium
+  initialNodeCount: 2
