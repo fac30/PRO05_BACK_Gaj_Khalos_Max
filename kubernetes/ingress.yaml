@@ -7,14 +7,8 @@ metadata:
     kubernetes.io/ingress.allow-http: "true"
 spec:
   ingressClassName: "gce"
-  rules:
-    - host: "pokelike.34.160.33.103.nip.io"
-      http:
-        paths:
-          - path: "/"
-            pathType: Prefix
-            backend:
-              service:
-                name: pokelike-api
-                port:
-                  number: 80
+  defaultBackend:
+    service:
+      name: pokelike-api
+      port:
+        number: 80
