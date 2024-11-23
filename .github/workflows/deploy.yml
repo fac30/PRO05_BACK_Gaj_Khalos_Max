@@ -83,15 +83,6 @@ jobs:
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
-      - name: Debug Storage
-        run: |
-          echo "Available Storage Classes:"
-          kubectl get storageclass
-          echo "\nPVC Status:"
-          kubectl describe pvc postgres-pvc
-          echo "\nCluster Events:"
-          kubectl get events --sort-by='.metadata.creationTimestamp' | grep -i volume
-
       - name: Deploy Infrastructure
         run: |
           # First deploy PVC and wait
