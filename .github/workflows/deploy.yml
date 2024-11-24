@@ -9,7 +9,6 @@ env:
   GKE_CLUSTER: pokelike-cluster
   GKE_ZONE: europe-west2-a
   IMAGE: pokelike-artifacts
-  NODE_POOL_NAME: preemptible-pool
 
 jobs:
   build-and-deploy:
@@ -40,51 +39,35 @@ jobs:
           docker build -t europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA .
           docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA
 
+      - name: Create or Get GKE Cluster
+        run: |
+          if ! gcloud container clusters describe $GKE_CLUSTER --zone $GKE_ZONE; then
+            gcloud container clusters create $GKE_CLUSTER \
+              --machine-type=e2-small \
+              --num-nodes=1 \
+              --disk-size=10 \
+              --zone=$GKE_ZONE
+          fi
+
       - name: Get GKE Credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
-      - name: Create and Wait for Node Pool
-        run: |
-          if ! gcloud container node-pools describe $NODE_POOL_NAME --cluster $GKE_CLUSTER --zone $GKE_ZONE; then
-            gcloud container node-pools create $NODE_POOL_NAME \
-              --cluster=$GKE_CLUSTER \
-              --preemptible \
-              --machine-type=e2-small \
-              --num-nodes=2 \
-              --disk-size=10 \
-              --zone=$GKE_ZONE
-          fi
-
-          echo "Waiting for preemptible nodes to be ready..."
-          until kubectl get nodes -l cloud.google.com/gke-preemptible=true | grep -q "Ready"; do
-            sleep 10
-          done
-
       - name: Delete Existing Resources
         run: |
-          # Delete API resources
           kubectl delete -f kubernetes/api-deployment.yaml --ignore-not-found
           kubectl delete -f kubernetes/api-service.yaml --ignore-not-found
-          kubectl delete -f kubernetes/api-hpa.yaml --ignore-not-found
-
-          # Delete Postgres resources
           kubectl delete -f kubernetes/postgres-deployment.yaml --ignore-not-found
           kubectl delete -f kubernetes/postgres-service.yaml --ignore-not-found
           kubectl delete -f kubernetes/postgres-pvc.yaml --ignore-not-found
 
-          # Delete networking resources
-          kubectl delete -f kubernetes/ingress.yaml --ignore-not-found
-
-          # Wait for core deployments to be deleted
           kubectl wait --for=delete deployment/pokelike-api --timeout=60s || true
           kubectl wait --for=delete deployment/postgres --timeout=60s || true
 
       - name: Deploy Infrastructure
         run: |
-          # Create PVC and Postgres resources
           kubectl apply -f kubernetes/postgres-pvc.yaml
           kubectl apply -f kubernetes/postgres-service.yaml
           kubectl apply -f kubernetes/postgres-deployment.yaml
@@ -92,16 +75,6 @@ jobs:
 
       - name: Deploy API and Services
         run: |
-          # Deploy API and core services
           kubectl apply -f kubernetes/api-service.yaml
           kubectl apply -f kubernetes/api-deployment.yaml
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
-
-      - name: Deploy Network Resources
-        run: |
-          kubectl apply -f kubernetes/ingress.yaml
-
-      - name: Deploy HPA
-        run: |
-          sleep 30
-          kubectl apply -f kubernetes/api-hpa.yaml

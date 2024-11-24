@@ -1,0 +1,11 @@
+apiVersion: container.gke.io/v1
+kind: Cluster
+metadata:
+  name: pokelike-cluster
+spec:
+  nodePools:
+  - name: default-pool
+    config:
+      machineType: e2-small
+      diskSizeGb: 10
+    initialNodeCount: 1 

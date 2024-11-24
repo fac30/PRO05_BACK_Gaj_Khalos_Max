@@ -12,8 +12,6 @@ spec:
       labels:
         app: pokelike-api
     spec:
-      nodeSelector:
-        cloud.google.com/gke-preemptible: "true"
       containers:
         - name: pokelike-api
           image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:v1
