@@ -55,7 +55,8 @@ jobs:
               --machine-type=e2-small \
               --num-nodes=1 \
               --disk-size=10 \
-              --zone=$GKE_ZONE
+              --zone=$GKE_ZONE \
+              --cluster-ipv4-cidr=10.0.0.0/24
           fi
 
       - name: Get GKE Credentials
