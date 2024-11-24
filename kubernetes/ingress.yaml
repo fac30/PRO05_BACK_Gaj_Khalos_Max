@@ -4,6 +4,10 @@ metadata:
   name: pokelike-ingress
   annotations:
     kubernetes.io/ingress.class: "gce"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PATCH, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://pokelike.s3-website.eu-west-2.amazonaws.com"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
 spec:
   defaultBackend:
     service:
