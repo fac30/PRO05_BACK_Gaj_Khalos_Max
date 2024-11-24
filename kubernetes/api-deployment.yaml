@@ -17,12 +17,6 @@ spec:
           image: europe-west2-docker.pkg.dev/poke-like-api/pokelike-artifacts/pokelike-artifacts:${GITHUB_SHA}
           ports:
             - containerPort: 8080
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 20
           resources:
             requests:
               cpu: "10m"
