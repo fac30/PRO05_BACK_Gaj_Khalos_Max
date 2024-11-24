@@ -15,7 +15,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
         policy.WithOrigins(
-                "http://pokelike.s3-website.eu-west-2.amazonaws.com"
+                "http://pokelike.s3-website.eu-west-2.amazonaws.com",
+                "http://localhost:5137"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -97,22 +98,7 @@ catch (Exception ex)
     throw;
 }
 
-app.UseCors("AllowSpecificOrigin");
-
-var corsHeaders = new Dictionary<string, string>
-{
-    { "Access-Control-Allow-Origin", "http://pokelike.s3-website.eu-west-2.amazonaws.com" },
-    { "Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS" },
-    { "Access-Control-Allow-Headers", "*" }
-};
-
-void AddCorsHeaders(HttpContext context)
-{
-    foreach (var header in corsHeaders)
-    {
-        context.Response.Headers[header.Key] = header.Value;
-    }
-}
+app.UseCors("AllowSpecificOrigins");
 
 if (app.Environment.IsDevelopment())
 {
@@ -125,66 +111,54 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "Welcome to the PokeLike API!");
 
-// Map endpoints
-app.MapGet("/themes", async (HttpContext context, PokeLikeDbContext db) =>
-{
-    AddCorsHeaders(context);
-    var themes = await db.Themes.OrderBy(theme => theme.Id).ToListAsync();
-    await context.Response.WriteAsJsonAsync(themes);
-});
+app.MapGet("/themes", async (PokeLikeDbContext db) =>
+    await db.Themes
+    .OrderBy(theme => theme.Id)
+    .ToListAsync());
 
 app.MapGet("/pokemon", async (HttpContext context, PokeLikeDbContext db) =>
 {
-    AddCorsHeaders(context);
-    var pokemon = await db.Pokemon.OrderBy(poke => poke.Id).ToListAsync();
-    await context.Response.WriteAsJsonAsync(pokemon);
+    await db.Pokemon
+    .OrderBy(poke => poke.Id)
+    .ToListAsync();
 });
 
-app.MapPost("/pokemon", async (HttpContext context, PokeLikeDbContext db, Pokemon pokemon) =>
+app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
-    AddCorsHeaders(context);
     await db.Pokemon.AddAsync(pokemon);
     await db.SaveChangesAsync();
-    await context.Response.WriteAsJsonAsync(pokemon);
+    return Results.Created($"/pokemon/{pokemon.Id}", pokemon);
 });
 
-app.MapPatch("/pokemon/{id}", async (HttpContext context, PokeLikeDbContext db, int id, HttpRequest request) =>
+app.MapPatch("/pokemon/{id}", async (PokeLikeDbContext db, int id, HttpRequest request) =>
 {
-    AddCorsHeaders(context);
     var pokemon = await db.Pokemon.FindAsync(id);
     if (pokemon == null)
     {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        return;
+        return Results.NotFound();
     }
 
     var updateData = await request.ReadFromJsonAsync<UpdatePokemonDto>();
     if (updateData == null || updateData.Likes == null)
     {
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        return;
+        return Results.BadRequest(new { message = "Invalid request payload." });
     }
 
     pokemon.Likes = updateData.Likes.Value;
     await db.SaveChangesAsync();
 
-    await context.Response.WriteAsJsonAsync(pokemon);
+    return Results.Ok(pokemon);
 });
 
-app.MapGet("/collections", async (HttpContext context, PokeLikeDbContext db) =>
-{
-    AddCorsHeaders(context);
-    var collections = await db.Collections
+app.MapGet("/collections", async (PokeLikeDbContext db) =>
+    await db.Collections
         .Include(c => c.PokemonCollections)
             .ThenInclude(pc => pc.Pokemon)
         .OrderBy(collection => collection.Id)
-        .ToListAsync();
-    await context.Response.WriteAsJsonAsync(collections);
-});
+        .ToListAsync());
 
-app.MapPost("/collections", async (HttpContext context, PokeLikeDbContext db, CreateCollectionDto dto) =>
+app.MapPost("/collections", async (PokeLikeDbContext db, CreateCollectionDto dto) =>
 {
-    AddCorsHeaders(context);
     var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
     var collection = new Collection
@@ -210,7 +184,8 @@ app.MapPost("/collections", async (HttpContext context, PokeLikeDbContext db, Cr
         await db.PokemonCollections.AddAsync(pokemonCollection);
     }
     await db.SaveChangesAsync();
-    await context.Response.WriteAsJsonAsync(collection);
+    return Results.Created($"/collections/{collection.Id}", collection);
+
 });
 
 app.MapGet("/health", () => Results.Ok("Healthy"));
