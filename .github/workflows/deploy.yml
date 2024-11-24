@@ -53,8 +53,7 @@ jobs:
           if ! gcloud container clusters describe $GKE_CLUSTER --zone $GKE_ZONE; then
             gcloud container clusters create $GKE_CLUSTER \
               --machine-type=e2-micro \
-              --num-nodes=2 \
-              --disk-size=10 \
+              --num-nodes=3 \
               --zone=$GKE_ZONE
           fi
 
