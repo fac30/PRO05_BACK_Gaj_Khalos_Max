@@ -54,7 +54,7 @@ jobs:
             gcloud container clusters create $GKE_CLUSTER \
               --machine-type=e2-micro \
               --num-nodes=1 \
-              --disk-size=10 \
+              --disk-size=5 \
               --zone=$GKE_ZONE
           fi
 
@@ -80,7 +80,7 @@ jobs:
           kubectl apply -f kubernetes/postgres-pvc.yaml
           kubectl apply -f kubernetes/postgres-service.yaml
           kubectl apply -f kubernetes/postgres-deployment.yaml
-          kubectl wait --for=condition=available deployment/postgres --timeout=180s
+          kubectl wait --for=condition=available deployment/postgres --timeout=200s
 
       - name: Deploy API and Services
         run: |
