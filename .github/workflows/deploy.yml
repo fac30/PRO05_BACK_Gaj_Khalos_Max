@@ -31,6 +31,15 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
+      - name: Create Artifact Registry Repository
+        run: |
+          if ! gcloud artifacts repositories describe pokelike-artifacts --location=europe-west2; then
+            gcloud artifacts repositories create pokelike-artifacts \
+              --repository-format=docker \
+              --location=europe-west2 \
+              --description="Docker repository for PokeLikeAPI"
+          fi
+
       - name: Configure Docker
         run: gcloud auth configure-docker europe-west2-docker.pkg.dev
 
