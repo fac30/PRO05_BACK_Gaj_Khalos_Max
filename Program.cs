@@ -117,11 +117,9 @@ app.MapGet("/themes", async (PokeLikeDbContext db) =>
     .ToListAsync());
 
 app.MapGet("/pokemon", async (PokeLikeDbContext db) =>
-{
     await db.Pokemon
     .OrderBy(poke => poke.Id)
-    .ToListAsync();
-});
+    .ToListAsync());
 
 app.MapPost("/pokemon", async (PokeLikeDbContext db, Pokemon pokemon) =>
 {
