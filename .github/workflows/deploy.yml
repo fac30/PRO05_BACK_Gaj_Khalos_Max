@@ -52,8 +52,8 @@ jobs:
         run: |
           if ! gcloud container clusters describe $GKE_CLUSTER --zone $GKE_ZONE; then
             gcloud container clusters create $GKE_CLUSTER \
-              --machine-type=e2-micro \
-              --num-nodes=3 \
+              --machine-type=e2-small \
+              --num-nodes=1 \
               --zone=$GKE_ZONE
           fi
 
@@ -83,6 +83,6 @@ jobs:
 
       - name: Deploy API and Services
         run: |
+          sed "s/:IMAGE_TAG/:$GITHUB_SHA/" kubernetes/api-deployment.yaml | kubectl apply -f -
           kubectl apply -f kubernetes/api-service.yaml
-          kubectl apply -f kubernetes/api-deployment.yaml
           kubectl wait --for=condition=available deployment/pokelike-api --timeout=180s
