@@ -20,10 +20,10 @@ spec:
           resources:
             requests:
               cpu: "50m"
-              memory: "128Mi"
+              memory: "32Mi"
             limits:
               cpu: "100m"
-              memory: "256Mi"
+              memory: "64Mi"
           env:
             - name: POSTGRES_DB
               value: PokeLikeDb

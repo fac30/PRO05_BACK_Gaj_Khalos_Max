@@ -52,8 +52,8 @@ jobs:
         run: |
           if ! gcloud container clusters describe $GKE_CLUSTER --zone $GKE_ZONE; then
             gcloud container clusters create $GKE_CLUSTER \
-              --machine-type=e2-small \
-              --num-nodes=1 \
+              --machine-type=e2-micro \
+              --num-nodes=2 \
               --zone=$GKE_ZONE
           fi
 

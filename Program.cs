@@ -116,7 +116,7 @@ app.MapGet("/themes", async (PokeLikeDbContext db) =>
     .OrderBy(theme => theme.Id)
     .ToListAsync());
 
-app.MapGet("/pokemon", async (HttpContext context, PokeLikeDbContext db) =>
+app.MapGet("/pokemon", async (PokeLikeDbContext db) =>
 {
     await db.Pokemon
     .OrderBy(poke => poke.Id)
