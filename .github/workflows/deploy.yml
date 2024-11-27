@@ -47,11 +47,14 @@ jobs:
           docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA .
           docker push $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA
 
+      - name: Setup Network
+        run: |
+          if ! gcloud compute networks describe pokelike-network; then
+            gcloud compute networks create pokelike-network --subnet-mode=auto
+          fi
+
       - name: Create Cloud Run Service
         run: |
-          # Create network
-          gcloud compute networks create pokelike-network --subnet-mode=auto || true
-
           # Deploy Postgres container
           gcloud compute instances create-with-container postgres \
             --container-image=postgres:latest \
