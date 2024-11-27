@@ -53,22 +53,26 @@ jobs:
             gcloud compute networks create pokelike-network --subnet-mode=auto
           fi
 
-      - name: Create Cloud Run Service
+      - name: Deploy Postgres
         run: |
-          # Deploy Postgres container
           gcloud compute instances create-with-container postgres \
             --container-image=postgres:latest \
             --container-env="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
             --container-mount-host-path=mount-path=/var/lib/postgresql/data,host-path=/postgres-data \
             --machine-type=e2-micro \
             --network=pokelike-network \
-            --zone=$REGION-a || true
+            --zone=$REGION-a \
+            --service-account=github-actions@poke-like-api.iam.gserviceaccount.com
 
-          # Deploy API container
+      - name: Deploy API
+        run: |
           gcloud run deploy pokelike-api \
             --image=$REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA \
             --platform=managed \
             --region=$REGION \
+            --cpu=0.1 \
+            --memory=256Mi \
+            --service-account=github-actions@poke-like-api.iam.gserviceaccount.com \
             --set-env-vars="ConnectionStrings__PokeLikeDbContext=Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
             --allow-unauthenticated \
             --vpc-connector=pokelike-connector
