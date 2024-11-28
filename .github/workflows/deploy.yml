@@ -55,10 +55,19 @@ jobs:
 
       - name: Deploy Postgres
         run: |
-          # Create the data directory first
-          gcloud compute ssh postgres --zone=$REGION-a --command="sudo mkdir -p /postgres-data && sudo chmod 777 /postgres-data" || true
-          
-          # Deploy the container
+          # Configure firewall rules for SSH
+          gcloud compute firewall-rules create allow-ssh \
+            --network=pokelike-network \
+            --allow=tcp:22 \
+            --source-ranges=0.0.0.0/0 || true
+
+          # Delete existing instance if it exists
+          gcloud compute instances delete postgres --zone=$REGION-a --quiet || true
+
+          # Wait for instance deletion
+          sleep 30
+
+          # Create new instance
           gcloud compute instances create-with-container postgres \
             --container-image=postgres:latest \
             --container-env="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
@@ -66,10 +75,19 @@ jobs:
             --machine-type=e2-micro \
             --network=pokelike-network \
             --zone=$REGION-a \
+            --metadata=startup-script='#! /bin/bash
+              mkdir -p /postgres-data
+              chmod 777 /postgres-data' \
             --service-account=github-actions@poke-like-api.iam.gserviceaccount.com
 
       - name: Deploy API
         run: |
+          # Delete existing instance if it exists
+          gcloud compute instances delete pokelike-api --zone=$REGION-a --quiet || true 
+
+          # Wait for instance deletion
+          sleep 30
+
           gcloud run deploy pokelike-api \
             --image=$REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA \
             --platform=managed \
