@@ -55,6 +55,10 @@ jobs:
 
       - name: Deploy Postgres
         run: |
+          # Create the data directory first
+          gcloud compute ssh postgres --zone=$REGION-a --command="sudo mkdir -p /postgres-data && sudo chmod 777 /postgres-data" || true
+          
+          # Deploy the container
           gcloud compute instances create-with-container postgres \
             --container-image=postgres:latest \
             --container-env="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
