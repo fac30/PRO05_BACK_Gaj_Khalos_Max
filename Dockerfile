@@ -24,4 +24,6 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 ENTRYPOINT ["dotnet", "PRO05_BACK_Gaj_Khalos_Max.dll"]
 
+EXPOSE 8080
+
 

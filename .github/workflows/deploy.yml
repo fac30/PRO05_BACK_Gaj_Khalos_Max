@@ -60,7 +60,8 @@ jobs:
             --cpu=0.1 \
             --memory=256Mi \
             --service-account=github-actions@poke-like-api.iam.gserviceaccount.com \
-            --set-env-vars="ConnectionStrings__PokeLikeDbContext=Host=/cloudsql/$PROJECT_ID:$REGION:postgres-instance;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
+            --set-env-vars="ASPNETCORE_URLS=http://+:8080,ConnectionStrings__PokeLikeDbContext=Host=/cloudsql/poke-like-api:europe-west2:postgres-instance;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
             --add-cloudsql-instances=$PROJECT_ID:$REGION:postgres-instance \
             --allow-unauthenticated \
-            --vpc-connector=pokelike-connector
+            --vpc-connector=pokelike-connector \s
+            --port=8080
