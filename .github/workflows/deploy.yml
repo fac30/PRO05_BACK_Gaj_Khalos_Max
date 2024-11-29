@@ -63,5 +63,5 @@ jobs:
             --set-env-vars="ASPNETCORE_URLS=http://+:8080,ConnectionStrings__PokeLikeDbContext=Host=/cloudsql/poke-like-api:europe-west2:postgres-instance;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
             --add-cloudsql-instances=$PROJECT_ID:$REGION:postgres-instance \
             --allow-unauthenticated \
-            --vpc-connector=pokelike-connector \s
+            --vpc-connector=pokelike-connector \
             --port=8080
