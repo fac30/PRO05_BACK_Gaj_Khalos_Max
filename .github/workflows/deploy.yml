@@ -30,19 +30,10 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Create Artifact Registry Repository
-        run: |
-          if ! gcloud artifacts repositories describe pokelike-artifacts --location=$REGION; then
-            gcloud artifacts repositories create pokelike-artifacts \
-              --repository-format=docker \
-              --location=$REGION \
-              --description="Docker repository for PokeLikeAPI"
-          fi
-
       - name: Configure Docker
         run: gcloud auth configure-docker $REGION-docker.pkg.dev
 
-      - name: Build and Push Image
+      - name: Build and Push API Image
         run: |
           docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA .
           docker push $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA
@@ -53,41 +44,27 @@ jobs:
             gcloud compute networks create pokelike-network --subnet-mode=auto
           fi
 
+      - name: Create VPC Connector
+        run: |
+          gcloud compute networks vpc-access connectors create pokelike-connector \
+            --network=pokelike-network \
+            --region=$REGION \
+            --range=10.8.0.0/28 || true
+
       - name: Deploy Postgres
         run: |
-          # Configure firewall rules for SSH
-          gcloud compute firewall-rules create allow-ssh \
-            --network=pokelike-network \
-            --allow=tcp:22 \
-            --source-ranges=0.0.0.0/0 || true
-
-          # Delete existing instance if it exists
-          gcloud compute instances delete postgres --zone=$REGION-a --quiet || true
-
-          # Wait for instance deletion
-          sleep 30
-
-          # Create new instance
-          gcloud compute instances create-with-container postgres \
-            --container-image=postgres:latest \
-            --container-env="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
-            --container-mount-host-path=mount-path=/var/lib/postgresql/data,host-path=/postgres-data \
-            --machine-type=e2-micro \
-            --network=pokelike-network \
-            --zone=$REGION-a \
-            --metadata=startup-script='#! /bin/bash
-              mkdir -p /postgres-data
-              chmod 777 /postgres-data' \
-            --service-account=github-actions@poke-like-api.iam.gserviceaccount.com
+          gcloud run deploy postgres \
+            --image=postgres:latest \
+            --platform=managed \
+            --region=$REGION \
+            --cpu=0.1 \
+            --memory=256Mi \
+            --service-account=github-actions@poke-like-api.iam.gserviceaccount.com \
+            --set-env-vars="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
+            --vpc-connector=pokelike-connector
 
       - name: Deploy API
         run: |
-          # Delete existing instance if it exists
-          gcloud compute instances delete pokelike-api --zone=$REGION-a --quiet || true 
-
-          # Wait for instance deletion
-          sleep 30
-
           gcloud run deploy pokelike-api \
             --image=$REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE/$IMAGE:$GITHUB_SHA \
             --platform=managed \
@@ -98,10 +75,3 @@ jobs:
             --set-env-vars="ConnectionStrings__PokeLikeDbContext=Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
             --allow-unauthenticated \
             --vpc-connector=pokelike-connector
-
-      - name: Create VPC Connector
-        run: |
-          gcloud compute networks vpc-access connectors create pokelike-connector \
-            --network=pokelike-network \
-            --region=$REGION \
-            --range=10.8.0.0/28 || true
