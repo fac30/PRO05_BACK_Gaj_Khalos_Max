@@ -51,18 +51,6 @@ jobs:
             --region=$REGION \
             --range=10.8.0.0/28 || true
 
-      - name: Deploy Postgres
-        run: |
-          gcloud run deploy postgres \
-            --image=postgres:latest \
-            --platform=managed \
-            --region=$REGION \
-            --cpu=0.1 \
-            --memory=256Mi \
-            --service-account=github-actions@poke-like-api.iam.gserviceaccount.com \
-            --set-env-vars="POSTGRES_DB=PokeLikeDb,POSTGRES_USER=postgres,POSTGRES_PASSWORD=welovepokemon" \
-            --vpc-connector=pokelike-connector
-
       - name: Deploy API
         run: |
           gcloud run deploy pokelike-api \
@@ -72,6 +60,7 @@ jobs:
             --cpu=0.1 \
             --memory=256Mi \
             --service-account=github-actions@poke-like-api.iam.gserviceaccount.com \
-            --set-env-vars="ConnectionStrings__PokeLikeDbContext=Host=postgres;Port=5432;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
+            --set-env-vars="ConnectionStrings__PokeLikeDbContext=Host=/cloudsql/$PROJECT_ID:$REGION:postgres-instance;Database=PokeLikeDb;Username=postgres;Password=welovepokemon" \
+            --add-cloudsql-instances=$PROJECT_ID:$REGION:postgres-instance \
             --allow-unauthenticated \
             --vpc-connector=pokelike-connector
